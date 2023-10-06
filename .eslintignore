@@ -1,0 +1,7 @@
+/.eslintrc.js
+/babel.config.js
+/metro.config.js
+/types/index.d.ts
+/tools/index.test.ts
+/temp.js
+**/vendor/*.js

@@ -1,0 +1,19 @@
+name: ESLint
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    container: reactnativecommunity/react-native-android:latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.node-version'
+          cache: 'npm'
+      - name: Install deps
+        run: npm ci
+      - name: Eslint
+        run: npx eslint --max-warnings=0 .

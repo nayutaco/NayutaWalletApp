@@ -1,0 +1,119 @@
+@startuml self-rebalance
+!pragma teoz true
+' skinparam handwritten true
+skinparam ParticipantPadding 30
+
+box App
+    participant AppRN
+    participant AppAndroid
+    participant AppGo
+    participant AppLND
+end box
+box Hub
+    participant LSP
+    participant HubLND
+end box
+
+note over AppLND
+    local reserve sat は
+    ゼロとする
+end note
+
+==== self-rebalance ====
+
+note over AppRN
+    on-the-fly や submarine swapで
+    チャネルが追加された
+end note
+
+AppRN -> AppAndroid: selfRebalance()
+AppAndroid -> AppGo
+activate AppGo
+
+AppGo -> AppLND ++ : ListChannels
+return channels
+
+note over AppGo
+    以下を求める
+
+    - local balanceの合計
+    - キャパシティの最大値
+        およびそのチャネル
+end note
+
+alt 集約できない
+note over AppGo
+    キャパシティ最大のチャネルで
+    local balanceを集約できないなら
+    何もせず終了する。
+end note
+AppAndroid <-- AppGo
+&AppRN <-- AppAndroid
+
+end
+
+group goroutine その1 
+    loop channels
+        alt 最大キャパシティのチャネル
+            note over AppGo
+                集約するチャネルなので
+                スキップ
+            end note
+        else それ以外
+            note over AppGo
+                local balance から
+                最低fee を引いたamount
+                ==> amountMsat
+            end note
+
+            AppGo -> AppLND ++: AddInvoice(amountMsat)
+            return
+
+            AppGo -> AppLND ++: QueryRoutes(自分, amountMsat, 最低fee)
+            return
+
+            alt ルート無し
+                note over AppGo
+                    次へ
+                end note
+            else ルートあり
+                note over AppGo
+                    集約するチャネルまでの
+                    送金ルートに書き換える
+                end note
+                AppGo -> AppLND ++: SendToRouteSync(自分へ送金)
+                AppLND -> HubLND ++
+                return
+                return
+            end
+        end alt
+    end loop
+end group
+
+group goroutine その2
+    note over AppGo #LightCoral
+        goroutine その1に続けて
+        行いたいが、処理を別にしないと
+        必ずクローズに失敗した。
+    end note
+    note over AppGo: 少し待つ
+
+    AppGo -> AppLND ++ : ListChannels
+    return channels
+
+    loop channels
+        alt local balanceがある
+            note over AppGo
+                何もしない
+            end note
+        else それ以外
+            AppGo --\ AppLND: CloseChannel
+        end alt
+    end loop
+end group
+
+AppAndroid <-- AppGo
+deactivate
+AppRN <-- AppAndroid
+
+@enduml

@@ -1,0 +1,88 @@
+@startuml submarine swap
+
+partition "**create swap address**\ncreateBtcAddress()" {
+  start
+  :preimageといくつかの秘密鍵を作成;
+  :paymnetHashと公開鍵に変換;
+  :LSPと通信してswap scriptとswap addressを決定;
+  :swap情報をsubmarineDBに保存(status=Reg);
+  stop
+}
+
+partition "**after receive Bitcoin**\ntxRecievedHandler()" {
+  :着金したBitcoinアドレスをsubmarineDBと比較する;
+  if (submarineDBに一致データあり) then (yes)
+    #LightSeaGreen:受金処理開始;
+  endif
+  :最後に処理したブロック高を保持;
+  stop
+}
+
+partition "**受金処理開始**\nstartReceive()" {
+  if (amountが0以下) then (yes)
+    #LightGreen:/*送金 or 自分が自分に送金した場合なのでスルー*/;
+    stop
+  endif
+  if (submarineDB状態がIgnored) then (yes)
+    #LightGreen:/*無視するPaymentHashなのでスルー*/;
+    stop
+  endif
+  if (submarineDB状態がDetect以降 or TXIDが検知済み) then (yes)
+    if (submarineDBのoutpoint情報と異なる) then (yes)
+      #LightGreen:/*先に処理しているTXIDがあるのでrepaymentさせる*/;
+      :repayDBに追加;
+    endif
+    stop
+  endif
+  :fee計算;
+  if (amountがLSP-fee以下) then (yes)
+    #LightGreen:/*金額が足りないのでrepaymentさせる*/;
+    :submarineDB状態を変更(status=Repay);
+    :repayDBに追加;
+    stop
+  endif
+  if (amountがSubmarine1回の上限より大きい) then (yes)
+    #LightGreen:/*金額が大きすぎるのでrepaymentさせる*/;
+    :submarineDB状態を変更(status=Repay);
+    :repayDBに追加;
+    stop
+  endif
+  if (総capacityが制限を超えている) then (yes)
+    #LightGreen:/*これ以上のチャネル作成を許可しないのでrepaymentさせる*/;
+    :submarineDB状態を変更(status=Repay);
+    :repayDBに追加;
+    stop
+  endif
+
+  :TransactionにLNDのラベル付けをする(メモ用);
+  :submarineDBデータを更新(status=Detect);
+  #LightSeaGreen:submarine swap実行;
+  stop
+}
+
+partition "**submarine swap実行**\nexecute()" {
+  :invoice作成;
+  if (作成失敗) then (yes)
+    stop
+  endif
+  :LSP submarineReceive();
+  if (成功) then (yes)
+    :submarineDB状態を変更(status=Invoice);
+  else (no)
+    :submarineDB状態を変更(status=Ignore);
+  endif
+  stop
+}
+
+partition "**after receive Lightning**\naddLnRecievedHandler()" {
+  if (on-the-fly DBに登録あり) then (yes)
+    :on-the-fly DB状態を変更(status=Settled);
+  else (no)
+    if (submarineDBに登録あり) then (yes)
+      :submarineDB状態を変更(status=Settled);
+    endif
+  endif
+  stop
+}
+
+@enduml

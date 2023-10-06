@@ -1,0 +1,39 @@
+@startuml LNURLWithdraw
+!pragma teoz true
+
+participant NC2
+participant "LNURL Server" as LNURLServer
+participant "LNURL Issuer" as LNURLIssuer
+
+NC2 <- LNURLIssuer:Issue LNURL withdrawRequest
+note over NC2
+    Decode URL
+end note
+opt URL query params doesn't include withdrawRequest tag
+    NC2 -> LNURLServer:Request metadata
+    NC2 <- LNURLServer:Return metadata
+end
+
+note over NC2
+    Create invoice
+end note
+NC2 -> LNURLServer:Request withdraw with created invoice
+NC2 <- LNURLServer:Return status
+
+opt On response other than 200
+    note over NC2
+        Handle error
+    end note
+end
+
+NC2 <- LNURLServer:Pay to invoice
+
+opt Invoice timeout
+    note over NC2
+        Handle error
+    end note
+end
+
+
+
+@enduml
