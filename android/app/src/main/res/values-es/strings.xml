@@ -1,0 +1,8 @@
+<resources>
+    <string name="service_indicator_chan_desc">Indicates that service is working.</string>
+    <string name="service_indicator_safestop">Cerrar la app</string>
+    <string name="service_indicator_closed">¡Canales cercanos detectados!</string>
+    <string name="service_indicator_closed_desc">El canal se ha cerrado y la aplicación debe iniciarse.</string>
+    <string name="service_indicator_longoff">¡Activar la aplicación!</string>
+    <string name="service_indicator_longoff_desc">La aplicación walleta no se ha puesto en marcha desde hace mucho tiempo.</string>
+</resources>

@@ -1,0 +1,66 @@
+@startjson table
+#highlight "ontheflys" / "paymentHash"
+#highlight "submarine" / "paymentHash"
+#highlight "repayments" / "outPoint"
+#highlight "submarines(LSP)" / "payment_hash"
+{
+  "ontheflys": {
+    "paymentHash": "use LN invoice and swap script if-route (HEX string)",
+    "status": {
+      "dbStatus.Reg": "1:register PaymentHash",
+      "dbStatus.Settled": "4:invoice settled"
+    }
+  },
+  "submarine": {
+    "paymentHash": "use LN invoice and swap script if-route (HEX string)",
+    "preimage": "[AES256-CBC]paymentHash = SHA256(preimage) (Base64)",
+    "repayPrivkey": "[AES256-CBC]swap script else-route (Base64)",
+    "htlcPubkey": "swap script if-route (HEX string)",
+    "script": "swap script (HEX string)",
+    "scriptAddress": "swap address",
+    "inTxid": "[after detected]TXID sending to swap address(HEX string)",
+    "inIndex": "[after detected]TXID out index sending to swap address",
+    "inAmount": "[after detected]amount",
+    "invoice": "[after executed]LN invoice after submarine swap",
+    "height": "block height",
+    "status": {
+      "dbStatus.None": "0:-",
+      "dbStatus.Reg": "1:register swap information",
+      "dbStatus.Detect": "2:detect sending swap address",
+      "dbStatus.Invoice": "3:send invoice to LSP",
+      "dbStatus.Settled": "4:invoice settled",
+      "dbStatus.Repayment": "5:to repayment(transfer to repayments DB)",
+      "dbStatus.Ignore": "99:ignore"
+    }
+  },
+  "repayments": {
+    "outPoint": "outpoint(TXID:INDEX)",
+    "amount": "amount",
+    "height": "block height",
+    "paymentHash": "submarines.paymentHash",
+    "done": "0...not repay, 1...repayed"
+  },
+  "submarines(LSP)": {
+    "payment_hash": "registerSubmarine ([]byte)",
+    "htlc_key": "private key for swap script",
+    "remote_node": "target node_id",
+    "script": "swap script",
+    "script_address": "swap address",
+    "invoice": "received LN invoice from NayutaWallet after TX confirmed",
+    "in_txid": "confirmed TXID",
+    "in_index": "confirmed outpoint",
+    "in_amount": "confirmed amount",
+    "out_txid": "redeemed TXID from 'in_txid:in_index'",
+    "status": {
+      "None": "",
+      "Reg": "RegisterSubmarine API are called and register swap script",
+      "Open": "Detect the payment to swap script and receive invoice from remote_node",
+      "Pay": "Detect the channel opened(will start LN payment)",
+      "Done": "Payment done",
+      "Cancel": "Stop the submarine swap process because of payed amount below minimum fee"
+    },
+    "height": "",
+    "script_version": ""
+  }
+}
+@endjson

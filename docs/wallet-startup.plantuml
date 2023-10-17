@@ -1,0 +1,99 @@
+@startuml wallet startup
+
+start
+:App.tsx;
+:components/projects/InitApp;
+group InitApp
+    :LndReactController.setup()|
+    :logging.logging_init()|
+    :initStorage.initStorage()|
+    :storeContext.getInitialState()|
+    :useStore(initialState, rescanWallet)|
+    :setLocale(initialState)|
+    :setTheme()|
+    if (walletExists()) then (yes)
+        :setMacaroonWithKeychain()|
+    endif
+    :manager.startSystem()|
+    group manager.startSystem()
+        :appDb.init()|
+        if (wallet.getState() is null) then (yes)
+            group wallet.startLnd()
+                :generate lnd.conf;
+                #Yellow:LndReactController.startLnd()|
+            end group
+        endif
+    end group
+    #Cyan:AppNavigator.tsx;
+end group
+end
+
+group navigation/AppNavigator.tsx
+    #Cyan:navigation/AppNavigator.tsx;
+    if (walletExists()) then (yes)
+        :初期画面はPIN入力 or Check画面\n(PIN入力後はCheck画面に遷移);
+        #LightGreen:Check画面(unlock);
+        end
+    else
+        :初期画面は言語選択画面;
+        :Disclaimer;
+        if (walletの新規作成か復元かの選択) then (新規)
+            :manager.invokeNewWallet()|
+            :BackupPassphrase画面;
+            :ConfirmPassphrase画面;
+            if (Root経由) then (yes)
+                :Home画面;
+                end
+            else (それ以外)
+                #LightGreen:Check画面(create);
+                end
+            endif
+        else (復元)
+            :RestorePassphrase画面;
+            :googleSignIn()|
+            :manager.invokeRecoveryWallet()|
+            :フラグ: walletRecovering=true;
+            #LightGreen:Check画面(recovery);
+            end
+        endif
+    endif
+end group
+
+group Check画面
+    #LightGreen:Check画面(route= create | recovery | unlock);
+    group レンダリング開始
+        :scheduleRefresh()|
+        :MUTEX lock;
+        :setUp()|
+        partition #LightBlue setUp() {
+            #SeaGreen:walletはActiveではない;
+            if (route == unlock) then (yes)
+                :walletがLOCKED以降になるまで待つ;
+                if (LOCKED) then (yes)
+                    :walletのunlockを開始
+                    store.walletRecoveringフラグがあるなら
+                    recovery_windowを使用する;
+                else
+                    #SeaGreen:walletはActiveである;
+                    :既にwalletがlock解除されているので\n特にやることはない。;
+                endif
+            endif
+            if (walletがActiveではない) then (yes)
+                :walletがSERVER_ACTIVEになるまで待つ;
+            endif
+            if ((route == recovery) or (store.walletRecoveringフラグ有り) then (yes)
+                :Googleドライブから復元;
+            endif
+            :LN受金通知待ち受け開始;
+            :LN受金通知待ち受けハンドラ登録;
+            :LN送金通知待ち受けハンドラ登録;
+            :LNルート送金通知待ち受けハンドラ登録;
+            :LSP ping処理;
+            :submarine.startup()|
+        }
+        :MUTEX unlock;
+        :done;
+    end group
+end group
+
+@enduml

@@ -1,0 +1,44 @@
+diff --git a/node_modules/rn-license-gen/src/index.js b/node_modules/rn-license-gen/src/index.js
+index 9db8667..cfef7c1 100755
+--- a/node_modules/rn-license-gen/src/index.js
++++ b/node_modules/rn-license-gen/src/index.js
+@@ -58,7 +58,7 @@ const androidProjectDir =
+   options.androidProject || path.join(projectDir, "android");
+ const androidLicenseFile =
+   options.androidLicenseFile ||
+-  path.join(androidProjectDir, "src/main/assets/licenses.json");
++  path.join(androidProjectDir, "app/src/main/assets/licenses.json");
+ const outputFile = options.output || path.join(projectDir, "licenses.json");
+ 
+ log(`Project directory: ${projectDir}`);
+diff --git a/node_modules/rn-license-gen/src/license2spdx.js b/node_modules/rn-license-gen/src/license2spdx.js
+index 09d1f30..002c9cc 100644
+--- a/node_modules/rn-license-gen/src/license2spdx.js
++++ b/node_modules/rn-license-gen/src/license2spdx.js
+@@ -33,7 +33,7 @@ export const license2spdx = {
+     "Play-Core-Software-Development-Kit-Terms-of-Service", // not in SPDX
+   pushwoosh_license: "Pushwoosh-License", // not in SPDX
+   "bsd-2-clause": "BSD-2-Clause",
+-
++  "Bouncy Castle Licence": "Bouncy-Castle-Licence", // not in SPDX
+   // identity mappings
+   "Apache-1.0": "Apache-1.0",
+   "Apache-1.1": "Apache-1.1",
+diff --git a/node_modules/rn-license-gen/src/templates/Bouncy-Castle-Licence.txt b/node_modules/rn-license-gen/src/templates/Bouncy-Castle-Licence.txt
+new file mode 100644
+index 0000000..62957b9
+--- /dev/null
++++ b/node_modules/rn-license-gen/src/templates/Bouncy-Castle-Licence.txt
+@@ -0,0 +1,12 @@
++Please note this should be read in the same way as the MIT license.
++
++Please also note this licensing model is made possible through funding from donations and the sale of support contracts.
++
++LICENSE
++Copyright (c) 2000 - 2021 The Legion of the Bouncy Castle Inc. (https://www.bouncycastle.org)
++
++Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
++
++The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
++
++THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

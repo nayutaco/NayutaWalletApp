@@ -1,0 +1,17 @@
+<resources>
+    <string name="service_indicator_chan_name" translatable="false">Service Indicator</string>
+    <string name="service_indicator_chanhigh_name" translatable="false">High Priority Indicator</string>
+
+    <string name="service_indicator_chan_desc">Indicates that service is working.</string>
+    <string name="service_indicator_safestop">Quit App</string>
+    <string name="service_indicator_closed">Channel Close Detected!</string>
+    <string name="service_indicator_closed_desc">Your Lightning channel has been closed. Please launch the application and check it.</string>
+    <string name="service_indicator_longoff">Please launch the wallet!</string>
+    <string name="service_indicator_longoff_desc">The application has not been launched for a long period of time.</string>
+
+    <string name="preference_file_key" translatable="false">preference_file_key</string>
+    <string name="preference_cchk_alarm_enabled" translatable="false">cchk_alarm_enabled</string>
+    <string name="preference_cchk_alarm_period" translatable="false">cchk_alarm_period</string>
+    <string name="preference_cchk_alarm_limit" translatable="false">cchk_alarm_limit</string>
+    <string name="preference_cchk_fail_started" translatable="false">cchk_fail_started</string>
+</resources>

@@ -1,0 +1,116 @@
+@startuml onthefly
+!pragma teoz true
+' skinparam handwritten true
+
+participant App
+participant lccontrol
+participant Android
+box LND
+    participant Lndmobile
+    participant LspClient
+    participant AppLND
+end box
+participant HubLND #LightBlue
+participant LSP #LightBlue
+
+====
+
+AppLND <--> HubLND: connected
+LspClient <--> LSP: connected
+LspClient -> LSP ++: ChannelInformation
+LspClient <-- LSP --: fee手数料などの情報
+note over LspClient: 保持しておく
+
+====
+
+App -> lccontrol: paymentRegister(amount)
+&lccontrol -> Android
+&Android -> Lndmobile
+Lndmobile -> LspClient ++
+note over LspClient: receiveMaxとの比較
+note over LspClient: LSP fee計算
+note over LspClient: preimage作成
+note over LspClient
+    invoice 1作成
+
+    HubLND-->AppLND間用
+    送金額: amount - LSP fee
+end note
+LspClient -> AppLND ++: AddInvoice()
+LspClient <-- AppLND --: invoice1
+
+note over LspClient
+    invoice1からinvoice 2を作成
+
+    誰か-->AppLND間用
+    送金額: amount
+end note
+LspClient -> AppLND ++: invoice.Encode()
+LspClient <-- AppLND --: invoice2
+
+note over LspClient
+    LSPに渡す情報
+
+    - PaymentHash
+    - PaymentAddress
+    - AppLND nodeID
+    - Payerから送られてくる額
+    - AppLNDに送金する額
+end note
+LspClient -> LSP ++: PaymentRegister(info)
+note over LSP: DB保存
+LspClient <-- LSP --
+
+Lndmobile <-- LspClient --: invoice2
+&Android <-- Lndmobile
+&lccontrol <-- Android
+&App <-- lccontrol
+
+note over App #LightSalmon
+    [NEW!]
+    on-the-fly DBに
+    PaymentHashを保存
+    (status=Reg)
+end note
+
+note over App
+    invoiceをPayerに見せる
+end note
+
+====
+
+HubLND /-- : 送金(invoice2)
+note over HubLND: intercept!
+activate HubLND
+HubLND -\ LSP ++: intercept
+note over LSP: PaymentHash比較
+note over LSP: いろいろチェック
+HubLND /-- LSP: OpenChannel(zero-conf)
+AppLND /-- HubLND: open_channel
+note over LSP: channelオープンをポーリング...
+note over LSP: open done!
+HubLND /-- LSP --: 送金再開(LSP feeを引いておく)
+&AppLND /-- HubLND: 送金(invoice1)
+AppLND --\ HubLND: 送金完了(preimage)
+&HubLND --\ LSP: 送金完了(preimage)
+App /-- AppLND: 送金完了
+deactivate HubLND
+
+alt ontheflys DBのPaymentHashがReg
+note over App #LightSalmon
+    [NEW!]
+    on-the-fly DBの
+    PaymentHashを更新
+    (status=Settled)
+end note
+
+note over App #LightSalmon
+    [NEW!]
+    self-rebalance(別)
+end note
+
+end
+
+====
+
+@enduml
