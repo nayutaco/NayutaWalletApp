@@ -1,0 +1,48 @@
+name: Android Build
+on:
+  pull_request:
+    branches:
+      - main
+      - release/**
+      - ios/production
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    container: reactnativecommunity/react-native-android:latest
+    steps:
+      - name: actions-setup-cmake
+        uses: jwlawson/actions-setup-cmake@v1.14.0
+        with:
+          cmake-version: '3.18.1'
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: '.node-version'
+          cache: 'npm'
+      - name: Cache Gradle packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
+      - name: Install deps
+        run: npm ci
+      # - name: Check license file
+      #   run: cd android && ./gradlew checkLicenses
+      # - name: Generate license file
+      #   run: npm run gen-license
+      - name: jest
+        run: npm test
+      - name: lint Android
+        run: cd android && ./gradlew lintNmainRelease
+      - name: build mainnet staging APK
+        run: cd android && ./gradlew assembleNmainStgrelease
+      - name: upload mainnet staging APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-nmain-staging.apk
+          path: android/app/build/outputs/apk/nmain/stgrelease/app-nmain-stgrelease.apk

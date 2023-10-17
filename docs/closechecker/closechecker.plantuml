@@ -1,0 +1,182 @@
+@startuml CloseChecker
+!pragma teoz true
+
+participant NC2
+participant Android
+participant BootedReceiver
+participant AlarmReceiver
+database Preference
+participant Lndmobile
+database CloseCheckDB
+participant LND
+participant ElectrumServer
+
+== Check screen ==
+
+group Sync()
+    NC2 -> Android++: removeChannelListAll()
+    &Android -> Lndmobile++
+    loop all items
+        Lndmobile --> CloseCheckDB: remove item
+    end loop
+    Android <-- Lndmobile--
+    &NC2 <-- Android--
+
+    NC2 -> Android++: ListChannels
+    &Android -> LND++
+    note over LND
+        ListChannels
+    end note
+    Android <-- LND--: channel list
+    &NC2 <-- Android--
+
+    loop channels
+        NC2 -> Android++: addChannelList(channelPoint[n])
+        &Android -> Lndmobile++
+        Lndmobile --> CloseCheckDB: add item
+        Android <-- Lndmobile--
+        &NC2 <-- Android--
+    end loop
+
+    Android <--> Preference: remove lastFail
+end group
+
+NC2 -\ Android: subscribeChannelEvents()
+Android -\ LND: subscribeChannelEvents()
+note over LND
+    Start subscribing
+    channel events
+end note
+
+== Detect channel open with LND ==
+
+Android /- LND++: notify channel opened
+NC2 /- Android++: callback('OPEN_CHANNEL', channelPoint)
+deactivate Android
+NC2 -> Android++: addChannelList(channelPoint)
+&Android -> Lndmobile++
+Lndmobile --> CloseCheckDB: add channel point
+Android <-- Lndmobile--
+&NC2 <-- Android--
+deactivate NC2
+
+== Detect channel close with LND ==
+
+Android /- LND++: notify channel closed
+NC2 /- Android++: callback('CLOSED_CHANNEL', channelPoint)
+deactivate Android
+NC2 -> Android++: removeChannelList(channelPoint)
+&Android -> Lndmobile++
+Lndmobile --> CloseCheckDB: remove channel point
+Android <-- Lndmobile--
+&NC2 <-- Android--
+deactivate NC2
+
+== Before LND stop ==
+
+note over NC2,LND
+    チャネルクローズ監視は LND が起動していない時だけ行う。
+    そのため、LNDを停止させる前に監視するチャネルの情報を更新する。
+end note
+
+NC2 /-- ++: something LND stop event
+NC2 -> NC2++: Sync()
+deactivate NC2
+NC2 <-> Lndmobile--
+
+
+== App Startup(Android) ==
+
+Android /-- ++: startup
+Android -> BootedReceiver++: registerBootedIntentReceiver
+note over BootedReceiver
+    OSブート時にintent通知を受け
+    AlarmReceiverを開始させる
+end note
+deactivate BootedReceiver
+Android -> AlarmReceiver++: registerAlarmReceiver
+note over AlarmReceiver
+    Alarmで定期的に
+    クローズチェックを呼び出す
+    (ELAPSED_REALTIME_WAKEUP)
+end note
+deactivate AlarmReceiver
+deactivate Android
+
+== Alarm fired and skip close check ==
+
+--\ AlarmReceiver ++: alarm fire
+
+Android <- AlarmReceiver++: isRunning()
+note over Android
+    LND runnning
+end note
+Android --> AlarmReceiver--: true
+note over AlarmReceiver
+    exit
+end note
+deactivate AlarmReceiver
+
+== Alarm fired and success close check ==
+
+--\ AlarmReceiver ++: alarm fire
+
+Android <- AlarmReceiver++: isRunning()
+note over Android
+    LND not runnning
+end note
+Android --> AlarmReceiver--: false
+AlarmReceiver -> Lndmobile++: init()
+deactivate Lndmobile
+AlarmReceiver -> Lndmobile++: ccStart()
+deactivate Lndmobile
+AlarmReceiver -> Lndmobile ++: ccCheckClosedChannels()
+Lndmobile <--> ElectrumServer: check channelpoint
+AlarmReceiver <-- Lndmobile --: closed channel num
+AlarmReceiver -> Lndmobile++: ccEnd()
+deactivate Lndmobile
+AlarmReceiver --> Preference: remove lastFail
+alt closed channel num > 0
+    note over AlarmReceiver
+        クローズされたチャネルがあるので
+        アプリを起動してもらう
+    end note
+    Android <-- AlarmReceiver: show notification
+end alt
+deactivate AlarmReceiver
+
+== Alarm fired and fail close check ==
+
+--\ AlarmReceiver ++: alarm fire
+
+Android <- AlarmReceiver++: isRunning()
+note over Android
+    LND not runnning
+end note
+Android --> AlarmReceiver--: false
+AlarmReceiver -> Lndmobile++: init()
+deactivate Lndmobile
+AlarmReceiver -> Lndmobile++: ccStart()
+deactivate Lndmobile
+AlarmReceiver -> Lndmobile ++: ccCheckClosedChannels()
+Lndmobile <--> ElectrumServer: check channelpoint
+note over Lndmobile,ElectrumServer #Red
+    something failure
+end note
+AlarmReceiver <-- Lndmobile --: fail
+AlarmReceiver -> Lndmobile++: ccEnd()
+deactivate Lndmobile
+alt lastFail not exist
+    AlarmReceiver --> Preference: add currentTime as lastFail
+end
+AlarmReceiver -> Preference++: get lastFail
+AlarmReceiver <-- Preference--: lastFail
+alt currentTime - lastFail > LIMIT
+    note over AlarmReceiver
+        何度も失敗しているので
+        アプリを起動してもらう
+    end note
+    Android <-- AlarmReceiver: show notification
+end
+
+@enduml

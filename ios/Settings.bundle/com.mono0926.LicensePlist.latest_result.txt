@@ -1,0 +1,557 @@
+name: Alamofire, nameSpecified: 
+body: Copyright (c) 2014-2…
+version: 5.7.1
+
+name: Alamofire, nameSpecified: 
+body: Copyright (c) 2014-2…
+version: 5.7.1
+
+name: AppAuth, nameSpecified: 
+body: 
+                   …
+version: 1.6.2
+
+name: AppAuth, nameSpecified: 
+body: 
+                   …
+version: 1.6.2
+
+name: BEMCheckBox, nameSpecified: 
+body: The MIT License (MIT…
+version: 1.4.1
+
+name: BEMCheckBox, nameSpecified: 
+body: The MIT License (MIT…
+version: 1.4.1
+
+name: boost, nameSpecified: 
+body: Boost Software Licen…
+version: 1.76.0
+
+name: boost, nameSpecified: 
+body: Boost Software Licen…
+version: 1.76.0
+
+name: CocoaAsyncSocket, nameSpecified: 
+body: Public Domain Licens…
+version: 7.6.5
+
+name: CocoaAsyncSocket, nameSpecified: 
+body: Public Domain Licens…
+version: 7.6.5
+
+name: DoubleConversion, nameSpecified: 
+body: Copyright 2006-2011,…
+version: 1.1.6
+
+name: DoubleConversion, nameSpecified: 
+body: Copyright 2006-2011,…
+version: 1.1.6
+
+name: Flipper, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 0.125.0
+
+name: Flipper, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 0.125.0
+
+name: Flipper-Boost-iOSX, nameSpecified: 
+body: Boost Software Licen…
+version: 1.76.0.1.11
+
+name: Flipper-Boost-iOSX, nameSpecified: 
+body: Boost Software Licen…
+version: 1.76.0.1.11
+
+name: Flipper-DoubleConversion, nameSpecified: 
+body: Copyright 2006-2011,…
+version: 3.2.0
+
+name: Flipper-DoubleConversion, nameSpecified: 
+body: Copyright 2006-2011,…
+version: 3.2.0
+
+name: Flipper-Fmt, nameSpecified: 
+body: Copyright (c) 2012 -…
+version: 7.1.7
+
+name: Flipper-Fmt, nameSpecified: 
+body: Copyright (c) 2012 -…
+version: 7.1.7
+
+name: Flipper-Folly, nameSpecified: 
+body: 
+                   …
+version: 2.6.10
+
+name: Flipper-Folly, nameSpecified: 
+body: 
+                   …
+version: 2.6.10
+
+name: Flipper-Glog, nameSpecified: 
+body: Copyright (c) 2008, …
+version: 0.5.0.4
+
+name: Flipper-Glog, nameSpecified: 
+body: Copyright (c) 2008, …
+version: 0.5.0.4
+
+name: Flipper-PeerTalk, nameSpecified: 
+body: Copyright (c) 2012 R…
+version: 0.0.4
+
+name: Flipper-PeerTalk, nameSpecified: 
+body: Copyright (c) 2012 R…
+version: 0.0.4
+
+name: Flipper-RSocket, nameSpecified: 
+body: Apache License
+     …
+version: 1.4.3
+
+name: Flipper-RSocket, nameSpecified: 
+body: Apache License
+     …
+version: 1.4.3
+
+name: FlipperKit, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 0.125.0
+
+name: FlipperKit, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 0.125.0
+
+name: fmt, nameSpecified: 
+body: Copyright (c) 2012 -…
+version: 6.2.1
+
+name: fmt, nameSpecified: 
+body: Copyright (c) 2012 -…
+version: 6.2.1
+
+name: glog, nameSpecified: 
+body: Copyright (c) 2008, …
+version: 0.3.5
+
+name: glog, nameSpecified: 
+body: Copyright (c) 2008, …
+version: 0.3.5
+
+name: GoogleSignIn, nameSpecified: 
+body: 
+                   …
+version: 6.1.0
+
+name: GoogleSignIn, nameSpecified: 
+body: 
+                   …
+version: 6.1.0
+
+name: GTMAppAuth, nameSpecified: 
+body: 
+                   …
+version: 1.3.1
+
+name: GTMAppAuth, nameSpecified: 
+body: 
+                   …
+version: 1.3.1
+
+name: GTMSessionFetcher, nameSpecified: 
+body: 
+                   …
+version: 1.7.2
+
+name: GTMSessionFetcher, nameSpecified: 
+body: 
+                   …
+version: 1.7.2
+
+name: hermes-engine, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 0.11.0
+
+name: hermes-engine, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 0.11.0
+
+name: libevent, nameSpecified: 
+body: Libevent is availabl…
+version: 2.1.12
+
+name: libevent, nameSpecified: 
+body: Libevent is availabl…
+version: 2.1.12
+
+name: LicensePlist, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 3.24.10
+
+name: LicensePlist, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 3.24.10
+
+name: lottie-ios, nameSpecified: 
+body:                     …
+version: 3.2.3
+
+name: lottie-ios, nameSpecified: 
+body:                     …
+version: 3.2.3
+
+name: lottie-react-native, nameSpecified: 
+body:                     …
+version: 5.0.1
+
+name: lottie-react-native, nameSpecified: 
+body:                     …
+version: 5.0.1
+
+name: OpenSSL-Universal, nameSpecified: 
+body: 
+  LICENSE ISSUES
+  …
+version: 1.1.1100
+
+name: OpenSSL-Universal, nameSpecified: 
+body: 
+  LICENSE ISSUES
+  …
+version: 1.1.1100
+
+name: RCT-Folly, nameSpecified: 
+body: 
+                   …
+version: 
+
+name: RCT-Folly, nameSpecified: 
+body: 
+                   …
+version: 
+
+name: React, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 0.68.5
+
+name: React, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 0.68.5
+
+name: React-Core, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 0.68.5
+
+name: React-Core, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 0.68.5
+
+name: react-native-aes, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 2.0.0
+
+name: react-native-aes, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 2.0.0
+
+name: react-native-background-timer, nameSpecified: 
+body: The MIT License (MIT…
+version: 2.4.1
+
+name: react-native-background-timer, nameSpecified: 
+body: The MIT License (MIT…
+version: 2.4.1
+
+name: react-native-camera, nameSpecified: 
+body: The MIT License (MIT…
+version: 4.2.1
+
+name: react-native-camera, nameSpecified: 
+body: The MIT License (MIT…
+version: 4.2.1
+
+name: react-native-cloud-store, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 0.10.3
+
+name: react-native-cloud-store, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 0.10.3
+
+name: react-native-document-picker, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 8.2.1
+
+name: react-native-document-picker, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 8.2.1
+
+name: react-native-get-random-values, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 1.8.0
+
+name: react-native-get-random-values, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 1.8.0
+
+name: react-native-restart, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 0.0.24
+
+name: react-native-restart, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 0.0.24
+
+name: react-native-safe-area-context, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 3.4.1
+
+name: react-native-safe-area-context, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 3.4.1
+
+name: react-native-sqlite-storage, nameSpecified: 
+body: The MIT License (MIT…
+version: 6.0.1
+
+name: react-native-sqlite-storage, nameSpecified: 
+body: The MIT License (MIT…
+version: 6.0.1
+
+name: RNCAsyncStorage, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 1.17.11
+
+name: RNCAsyncStorage, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 1.17.11
+
+name: RNCClipboard, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 1.11.1
+
+name: RNCClipboard, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 1.11.1
+
+name: RNDeviceInfo, nameSpecified: 
+body: The MIT License (MIT…
+version: 8.4.9
+
+name: RNDeviceInfo, nameSpecified: 
+body: The MIT License (MIT…
+version: 8.4.9
+
+name: RNFS, nameSpecified: 
+body: The MIT License (MIT…
+version: 2.19.0
+
+name: RNFS, nameSpecified: 
+body: The MIT License (MIT…
+version: 2.19.0
+
+name: RNGestureHandler, nameSpecified: 
+body: The MIT License (MIT…
+version: 2.8.0
+
+name: RNGestureHandler, nameSpecified: 
+body: The MIT License (MIT…
+version: 2.8.0
+
+name: RNGoogleSignin, nameSpecified: 
+body: The MIT License (MIT…
+version: 7.1.0
+
+name: RNGoogleSignin, nameSpecified: 
+body: The MIT License (MIT…
+version: 7.1.0
+
+name: RNKeychain, nameSpecified: 
+body: The MIT License (MIT…
+version: 8.0.0
+
+name: RNKeychain, nameSpecified: 
+body: The MIT License (MIT…
+version: 8.0.0
+
+name: RNPermissions, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 3.3.1
+
+name: RNPermissions, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 3.3.1
+
+name: RNReanimated, nameSpecified: 
+body: The MIT License (MIT…
+version: 2.10.0
+
+name: RNReanimated, nameSpecified: 
+body: The MIT License (MIT…
+version: 2.10.0
+
+name: RNScreens, nameSpecified: 
+body: The MIT License (MIT…
+version: 3.13.1
+
+name: RNScreens, nameSpecified: 
+body: The MIT License (MIT…
+version: 3.13.1
+
+name: RNSecureRandom, nameSpecified: 
+body: Copyright (c) 2017 R…
+version: 1.0.1
+
+name: RNSecureRandom, nameSpecified: 
+body: Copyright (c) 2017 R…
+version: 1.0.1
+
+name: RNShare, nameSpecified: 
+body: The MIT License (MIT…
+version: 8.2.2
+
+name: RNShare, nameSpecified: 
+body: The MIT License (MIT…
+version: 8.2.2
+
+name: RNSVG, nameSpecified: 
+body: The MIT License (MIT…
+version: 12.3.0
+
+name: RNSVG, nameSpecified: 
+body: The MIT License (MIT…
+version: 12.3.0
+
+name: RNVectorIcons, nameSpecified: 
+body: The MIT License (MIT…
+version: 9.2.0
+
+name: RNVectorIcons, nameSpecified: 
+body: The MIT License (MIT…
+version: 9.2.0
+
+name: RNZipArchive, nameSpecified: 
+body: The MIT License (MIT…
+version: 6.0.8
+
+name: RNZipArchive, nameSpecified: 
+body: The MIT License (MIT…
+version: 6.0.8
+
+name: SocketRocket, nameSpecified: 
+body: BSD License
+
+For Soc…
+version: 0.6.1
+
+name: SocketRocket, nameSpecified: 
+body: BSD License
+
+For Soc…
+version: 0.6.1
+
+name: SSZipArchive, nameSpecified: 
+body: Copyright (c) 2010-2…
+version: 2.2.3
+
+name: SSZipArchive, nameSpecified: 
+body: Copyright (c) 2010-2…
+version: 2.2.3
+
+name: YogaKit, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 1.18.1
+
+name: YogaKit, nameSpecified: 
+body: MIT License
+
+Copyrig…
+version: 1.18.1
+
+name: grpc-swift, nameSpecified: grpc-swift, owner: grpc, version: 1.19.1, source: https://github.com/grpc/grpc-swift
+
+name: swift-atomics, nameSpecified: swift-atomics, owner: apple, version: 1.1.0, source: https://github.com/apple/swift-atomics
+
+name: swift-collections, nameSpecified: swift-collections, owner: apple, version: 1.0.4, source: https://github.com/apple/swift-collections
+
+name: swift-log, nameSpecified: swift-log, owner: apple, version: 1.5.3, source: https://github.com/apple/swift-log
+
+name: swift-nio, nameSpecified: swift-nio, owner: apple, version: 2.58.0, source: https://github.com/apple/swift-nio
+
+name: swift-nio-extras, nameSpecified: swift-nio-extras, owner: apple, version: 1.19.0, source: https://github.com/apple/swift-nio-extras
+
+name: swift-nio-http2, nameSpecified: swift-nio-http2, owner: apple, version: 1.27.0, source: https://github.com/apple/swift-nio-http2
+
+name: swift-nio-ssl, nameSpecified: swift-nio-ssl, owner: apple, version: 2.25.0, source: https://github.com/apple/swift-nio-ssl
+
+name: swift-nio-transport-services, nameSpecified: swift-nio-transport-services, owner: apple, version: 1.19.0, source: https://github.com/apple/swift-nio-transport-services
+
+name: swift-protobuf, nameSpecified: SwiftProtobuf, owner: apple, version: 1.22.1, source: https://github.com/apple/swift-protobuf
+
+add-version-numbers: false
+
+LicensePlist Version: 3.24.10

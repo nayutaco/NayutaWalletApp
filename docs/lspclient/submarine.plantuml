@@ -1,0 +1,304 @@
+@startuml submarine
+!pragma teoz true
+' skinparam handwritten true
+
+actor User
+box App
+    participant AppRN
+    participant AppAndroid
+    participant AppGo
+    participant AppLND
+end box
+box Hub
+    participant LSP
+    participant HubLND
+end box
+actor Payer
+participant Blockchain
+
+==== startup ====
+
+note over AppRN #LightCyan
+    create submarineDB
+    create repaymentsDB
+end note
+&note over LSP #LightCyan
+    create submarines(LSP)DB
+end note
+
+AppAndroid -> AppLND: gRPC: SubscribeTransactions()
+&LSP ->> HubLND: gRPC: SubscribeTransactions()
+AppLND <- AppLND: wait...
+&HubLND <- HubLND: wait...
+
+==== register ====
+
+User -> AppRN: BTCをLNにしたい
+
+note over AppRN
+    よいsecureライブラリがなかったので
+    btcd関係のライブラリで作ってもらう
+end note
+AppRN -> AppAndroid: createKeys()
+&AppAndroid -> AppGo
+note over AppGo #LightGreen: create Preimage
+note over AppGo #LightGreen: Preimage -> PaymentHash
+note over AppGo #LightGreen: create RepayPrivkey
+note over AppGo #LightGreen: RepayPrivkey -> RepayPubkey
+AppAndroid <-- AppGo: protobuf\n(preimage, paymenthash, privkey, pubkey)
+&AppRN <-- AppAndroid
+
+AppRN -> AppAndroid: RegisterSubmarine\n(PaymentHash, RepayPubkey, node_id)
+&AppAndroid -> AppGo
+AppGo -> LSP: gRPC: RegisterSubmarine(PaymentHash, RepayPubkey, node_id)
+note over LSP #LightGreen: create HtlcKey
+note over LSP #LightGreen: HtlcKey -> HtlcPubkey
+note over LSP: create Script(PaymentHash, HtlcPubkey, RepayPubkey)
+LSP -> HubLND: gRPC: ImportWitnessScript(script)
+LSP <-- HubLND: ScriptAddress(Hub)
+note over LSP
+    GetTransactionsがブロック高を取るので
+    保持した方がよいだろう。
+end note
+note over LSP #LightCyan
+    store submarines(LSP)DB: payment_hash
+        htlc_key
+        node_id
+        script
+        script_address
+        status=1:"REG"
+        height
+end note
+
+AppGo <-- LSP: ScriptAddress(Hub), HtlcPubkey
+note over AppGo: create Script(PaymentHash, HtlcPubkey)
+AppGo -> AppLND: gRPC: ImportWitnessScript(script)
+AppGo <-- AppLND: ScriptAddress(App)
+note over AppGo: check ScriptAddress\n(Hub==App)->OK
+AppAndroid <-- AppGo: protobuf\n(htlc_pubkey, script, script_address, height)
+&AppRN <-- AppAndroid
+note over AppRN #LightCyan
+    store submarineDB: payment_hash
+        preimage
+        repay_privkey
+        htlc_pubkey
+        script
+        script_address
+        status=1:"REG"
+        height
+end note
+
+User <-- AppRN: ScriptAddress
+note over User: QRcode(ScriptAddress)
+User -\ Payer: ScriptAddress
+
+==== BTC payment ====
+
+Payer -\ Blockchain: pay to ScriptAddress
+... transaction confirmed ...
+HubLND /- Blockchain: detect pay to ScriptAddress
+LSP <-- HubLND: detected Transaction
+note over LSP: check OutPoint\n-> OK
+note over LSP #LightCyan
+    store submarines(LSP)DB: payment_hash
+        in_txid
+        in_index
+        in_amount
+        height
+end note
+
+AppLND <-- Blockchain: detect pay to ScriptAddress
+AppAndroid <-- AppLND: detected Transaction
+AppRN <-- AppAndroid
+note over AppRN: check OutPoint\n-> OK
+note over AppRN #LightCyan
+    store submarineDB: payment_hash
+        in_txid
+        in_index
+        in_amount
+        height
+        status=2:"DETECT"
+end note
+
+==== submarine swap ====
+
+AppRN -> AppLND: REST: addinvoice(preimage)
+AppRN <-- AppLND: invoice
+note over AppRN #LightCyan
+    store submarineDB: payment_hash
+        invoice
+        status=3:"INV"
+end note
+
+AppRN -> AppLND: REST: connect(Hub)
+AppLND -\ HubLND: connect
+
+AppRN -> AppAndroid: ReceiveSubmarine\n(invoice)
+&AppAndroid -> AppGo
+AppGo -> LSP: gRPC: ReceiveSubmarine(invoice)
+note over LSP #LightCyan
+    store submarines(LSP)DB: payment_hash
+        invoice
+end note
+AppGo <-- LSP: OK
+AppRN <-- AppGo
+
+note over LSP
+    invoiceの到着とTXIDの検出は
+    どちらが先になるか分からないので
+    両方揃うまで待つ。
+end note
+note over LSP #LightCyan
+    store submarines(LSP)DB: payment_hash
+        status=2:"OPEN"
+end note
+
+note over LSP
+    channel openは必須ではないのだが、
+    今のところ必ずオープンするように作っている。
+end note
+LSP -> HubLND: gRPC: OpenChannel(AppLND)
+AppLND <- HubLND: LN: open_channel
+... LN open sequence ...
+AppLND <-> HubLND: funding_locked
+LSP <-- HubLND: done OpenChannel
+
+note over LSP #LightCyan
+    store submarines(LSP)DB: payment_hash
+        status=3:"PAY"
+end note
+LSP -> HubLND: gRPC: Pay(invoice)
+AppLND <- HubLND: LN: update_add_htlc
+... LN paying ...
+AppLND -> HubLND: update_fulfill_htlc(preimage)
+... LN fulfilling ...
+AppLND <-> HubLND: (payment done)
+
+AppRN /- AppLND: invoice settled
+
+alt submarine DBのPaymentHashがSettledではない
+note over AppRN #LightCyan
+    store submarineDB: payment_hash
+        status=4:"SETTLED"
+end note
+
+note over AppRN #LightSalmon
+    [NEW!]
+    on-the-fly DBの
+    PaymentHashを更新
+    (status=Settled)
+end note
+
+note over AppRN #LightSalmon
+    [NEW!]
+    self-rebalance(別)
+end note
+end
+
+note over LSP: create Redeem TX
+LSP -> HubLND: PublishTransaction(tx)
+&HubLND -> Blockchain
+note over LSP #LightCyan
+    store submarines(LSP)DB: payment_hash
+        out_txid
+        status=4:"DONE"
+end note
+
+==== swapアドレスへの送金チェックNG ====
+
+AppLND <-- Blockchain: detect pay to ScriptAddress
+AppAndroid <-- AppLND: detected Transaction
+AppRN <-- AppAndroid
+note over AppRN #LightSalmon
+    check OutPoint\n-> NG
+    ・金額が最低手数料以下
+    ・swap可能上限を超えている
+end note
+note over AppRN #LightCyan
+    払い戻しDBに移す
+    store submarineDB: payment_hash
+        status=5:"REPAYMENT"
+
+    store repaymentsDB: payment_hash
+        txid
+        index
+        amount
+        height
+end note
+
+==== 将来の払い戻し額チェック ====
+
+note over AppRN
+    swapスクリプトはOP_CSVでロックを掛けているため
+    NC2側に払い戻しをするには一定ブロック数の
+    confirmが必要となる。
+    スクリプトバージョン2では144ブロックである。
+    この処理ではまだ144ブロックになっていない額を返す。
+
+    ユーザにアプリをアンインストールしないよう通知する目的。
+end note
+-> AppRN: 将来的に払い戻し可能になる額
+AppRN -> AppRN: submarine.nonRepaymentAmount()
+note over AppRN #LightCyan
+    submarineDBから以下の条件を満たすデータを集める
+    ・現ブロック高 - confブロック高 < OP_CSVブロック数
+    ・TXIDあり
+    ・amountが0より大きい
+end note
+note over AppRN #LightCyan
+    repaymentsDBから以下の条件を満たすデータを集める
+    ・現ブロック高 - confブロック高 < OP_CSVブロック数
+    ・amountが0より大きい
+end note
+note over AppRN #LightCyan
+    集めたデータのamountを合計
+end note
+AppRN <-- AppRN: 合計amount
+<-- AppRN: 合計amount
+
+==== 現在の払い戻し額チェック ====
+
+note over AppRN
+    この処理ではまだ144ブロック以上経過した額を返す。
+
+    ユーザに払い戻し可能であることを通知する目的。
+end note
+-> AppRN: 現在払い戻し可能な額
+AppRN -> AppRN: submarine.repaymentAmount()
+note over AppRN #LightCyan
+    submarineDBから以下の条件を満たすデータを集める
+    ・現ブロック高 - confブロック高 >= OP_CSVブロック数
+    ・TXIDあり
+    ・amountが0より大きい
+end note
+note over AppRN #LightCyan
+    repaymentsDBから以下の条件を満たすデータを集める
+    ・現ブロック高 - confブロック高 >= OP_CSVブロック数
+    ・amountが0より大きい
+end note
+note over AppRN #LightCyan
+    集めたデータのamountを合計
+end note
+AppRN <-- AppRN: 合計amount
+<-- AppRN: 合計amount
+
+==== repayment ====
+
+User -\ AppRN: 払い戻し(アドレス)
+AppRN -> AppAndroid: repayment(RepayPrivkey, Script, InTxid, InIndex, InAmount, RepayAddress)
+&AppAndroid -> AppGo
+note over AppGo
+    払い戻しtx作成
+end note
+AppGo -> AppLND: gRPC: PublishTransaction()
+AppGo <-- AppLND: no error
+
+AppAndroid <-- AppGo: TXID
+&AppRN <-- AppAndroid
+note over AppRN #LightCyan
+    store submarineDB: payment_hash
+        out_txid: 払い戻しTXID
+        status=5:"REPAY"
+end note
+
+@enduml

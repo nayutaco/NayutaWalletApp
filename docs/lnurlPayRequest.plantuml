@@ -1,0 +1,29 @@
+@startuml LNURLPay
+!pragma teoz true
+
+participant NC2
+participant "LNURL Server" as LNURLServer
+participant "LNURL Issuer" as LNURLIssuer
+
+NC2 <- LNURLIssuer:Issue LNURL payRequest
+note over NC2
+    Decode URL
+end note
+NC2 -> LNURLServer:Request payRequest data
+NC2 <- LNURLServer:Return payRequest data
+
+note over NC2
+    Request invoice
+end note
+NC2 -> LNURLServer:Request invoice
+NC2 <- LNURLServer:Return invoice
+
+opt On response other than 200
+    note over NC2
+        Handle error
+    end note
+end
+
+NC2 -> LNURLServer:Pay to invoice
+
+@enduml

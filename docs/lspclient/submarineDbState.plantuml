@@ -1,0 +1,27 @@
+@startuml submarine db status
+!pragma layout smetana
+
+[*] --> dbStatus.Reg: swapアドレス登録
+
+dbStatus.Reg: LSPと通信してswapアドレスを作成済み
+dbStatus.Reg: swapアドレスへのBTC送金待ち
+dbStatus.Detect: swapアドレスへの着金検出済み\nOP_CSV経過するとRepayment対象。
+dbStatus.Invoice: invoiceを作成してLSPに通知済み\nOP_CSV経過するとRepayment対象。
+dbStatus.Settled: LSPからのLN着金済み
+dbStatus.Repayment: このpaymentHashでのsubmarine swapは行わない\nOP_CSV経過するとRepayment対象。
+dbStatus.Ignore: このpaymentHashは無視する
+
+state s2 <<choice>>
+state s3 <<choice>>
+
+dbStatus.Reg --> s2: swapアドレス着金
+s2 --> s3: [新規着金]
+s2 --> dbStatus.Repayment: 新規ではない
+s3 --> dbStatus.Detect: [着金 > 手数料]
+s3 --> dbStatus.Repayment: [着金 <= 手数料]
+
+dbStatus.Detect --> dbStatus.Invoice: invoice作成
+dbStatus.Detect --> dbStatus.Ignore: LSP swap実行中にエラー
+dbStatus.Invoice --> dbStatus.Settled: LN着金完了
+
+@enduml
