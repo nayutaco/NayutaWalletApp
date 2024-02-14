@@ -36,7 +36,7 @@ Website: https://nayuta.co/nayuta-wallet-2022/
 Mobile wallet application
 
 * Repository
-  * [Android](https://github.com/nayutaco/NayutaWalletApp/tree/android-v0.3.0)
+  * [Android](https://github.com/nayutaco/NayutaWalletApp/tree/android-v0.4.0)
   * [iOS](https://github.com/nayutaco/NayutaWalletApp/tree/ios-v1.2.0)
 
 * Changes from released apps
