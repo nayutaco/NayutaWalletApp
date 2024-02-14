@@ -1,0 +1,153 @@
+@startuml App Check(Android)
+!pragma teoz true
+
+box "NayutaWallet"
+participant "RN" as NC2
+participant "Android" as LspClient
+end box
+participant LSP
+database "LSP-DB" as LspDb
+participant Google
+
+== mainnet以外 ==
+
+[-> NC2
+activate NC2
+NC2 -> LspClient++: appCheck()
+group previous result check
+    LspClient -> LSP++: Send Integrity Verify(node_id, "", id)
+    note over LSP
+        LSPがmainnet以外の場合、無条件でOKとする
+    end note
+    LspClient <-- LSP--: OK
+end group
+NC2 <-- LspClient--: true
+NC2 -> LspClient++: requestOpenChannel()
+note over LspClient
+    mainnetと同じため省略
+end note
+NC2 <-- LspClient--
+deactivate NC2
+
+== Normal ==
+
+[-> NC2
+activate NC2
+NC2 -> LspClient++: appCheck()
+
+note over LspClient
+    id
+      Android: ""
+      iOS    : "iOS"
+end note
+
+group previous result check
+    LspClient -> LSP++: Send Integrity Verify(node_id, "", id)
+    LSP -> LspDb++: SELECT node_id
+    LSP <-- LspDb--: no result, executedAt
+    LspClient <-- LSP--: no result
+end group
+
+note over LspClient: no result
+
+group nonce
+    LspClient -> LSP++: Request Integrity Nonce(node_id, id)
+    note over LSP: create nonce
+    LSP -> LspDb: INSERT node_id, nonce
+    LspClient <-- LSP--: nonce
+end gropup
+
+alt Android (id=="")
+group token
+    Google <- LspClient++: Request Integrity Token(nonce)
+    note over Google: take a several seconds
+    Google --> LspClient--: token
+end gropup
+else iOS (id=="iOS")
+    note over LspClient: cannot call Integrity API
+end
+
+group verify
+    LspClient -> LSP++: Send Integrity Verify(node_id, token, id)
+    LSP -> LspDb++: SELECT node_id
+    LSP <-- LspDb--: nonce
+    alt Android (id=="")
+        LSP -> Google++: Decode Token(token)
+        LSP <-- Google--: result
+    else iOS (id=="iOS")
+        note over LSP: skip
+    end
+    LSP -> LspDb: UPDATE node_id, result
+    LspClient <-- LSP--: result
+end group
+
+NC2 <-- LspClient--: result
+
+note over NC2: result = true
+
+NC2 -> LspClient++: requestOpenChannel()
+
+group open channel request
+    LspClient -> LSP++: Request Open Channel(node_id)
+    note over LSP: check previous result
+    LSP -> LspDb++: SELECT node_id
+    LSP <-- LspDb--: result
+    alt result = true
+        note over LSP
+            request open channel
+            (HUB->node_id)
+        end note
+    end
+end group
+
+LspClient <-- LSP--
+NC2 <-- LspClient--
+deactivate NC2
+
+== Previous result are on time ==
+
+[-> NC2
+activate NC2
+NC2 -> LspClient++: appCheck()
+
+group previous result check
+    LspClient -> LSP++: Send Integrity Verify(node_id, token, id)
+    LSP -> LspDb++: SELECT node_id
+    LSP <-- LspDb--: result, executedAt
+    note over LSP: executedAt is on time
+    
+    LspClient <-- LSP--: result
+end group
+
+NC2 <-- LspClient--: result
+deactivate NC2
+
+note over NC2, Google
+    以下「Normal」同様
+end note
+
+== Previous result are out of date ==
+
+[-> NC2
+activate NC2
+NC2 -> LspClient++: appCheck()
+
+group previous result check
+    LspClient -> LSP++: Send Integrity Verify(node_id, token, id)
+    LSP -> LspDb++: SELECT node_id
+    LSP <-- LspDb--: result, executedAt
+        note over LSP: executedAt is out of date
+
+    LspClient <-- LSP--: no result
+end group
+
+note over LspClient: no result
+
+note over NC2, Google
+    以下「Normal」同様
+end note
+
+NC2 <-- LspClient--
+deactivate NC2
+
+@enduml

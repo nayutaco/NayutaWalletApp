@@ -1,0 +1,374 @@
+@startuml submarine
+!pragma teoz true
+' skinparam handwritten true
+autoactivate on
+
+participant App
+participant lccontrol
+participant Android
+box LND
+    participant Lndmobile
+    participant LspClient
+    participant AppLND
+end box
+participant LSP #LightBlue
+participant HubLND #LightBlue
+
+====
+
+note across
+    共通: LSP接続
+
+    必要な場合だけ接続してすぐ切断する想定
+end note
+
+note over lccontrol
+    pre-defined:
+
+    - lspAddr
+    - lspToken
+end note
+
+App -> lccontrol: connect()
+lccontrol -> lccontrol: disconnect()
+return
+
+lccontrol -> Android: REST:GetInfo
+Android -> AppLND
+' Android <-- AppLND: info
+'&lccontrol <-- Android
+return info
+return
+
+lccontrol -> Android: connect(info.node, lspAddr, lspToken, macaroon)
+Android -> Lndmobile: lcConnect()
+Lndmobile -> LspClient: Connect()
+LspClient -> AppLND: grpc.Dial()
+return
+LspClient -> LSP: grpc.Dial()
+return
+LspClient -> LSP: grpc: channelInfo()
+note over LSP
+    LSP側のノード情報などを返す
+end note
+return channelInfo
+note over LspClient
+    save channelInfo
+
+    - name
+    - pubkey
+    - host
+    - channel_capacity
+    - target_conf
+    - base_fee_msat
+    - fee_rate
+    - time_lock_delta
+    - min_htlc_msat
+    - channel_fee_permyriad
+    - lsp_pubkey
+    - max_inactive_duration
+    - channel_minimum_fee_msat
+end note
+return
+return
+return
+
+lccontrol -> Android: REST:Connect(lspNode)
+Android -> AppLND
+AppLND -> HubLND: connect
+return
+return OK
+return OK
+return
+
+====
+
+note across: 共通: LSP切断
+
+App -> lccontrol: disconnect()
+lccontrol -> Android: disconnect()
+Android -> Lndmobile: lcDisconnect()
+Lndmobile -> LspClient: Disconnect()
+LspClient -> AppLND: grpc.Close()
+return
+LspClient -> LSP: grpc.Close()
+return
+
+note over LspClient
+    AppLNDとも切断するため、
+    これ以降でLNDのgRPCを使うと
+    exceptionが発生する
+end note
+return
+return
+return
+return
+
+====
+
+note across: 共通: LSPが接続するLNノード
+
+App -> lccontrol: hubNodeString()
+lccontrol -> Android: getLcNodeString()
+Android -> Lndmobile: LcGetLcNodeString()
+Lndmobile -> LspClient: GetLcNodeString()
+return channelInfo.Host
+return
+return
+return node
+
+====
+
+note across
+    共通: LSP手数料(パーセント)
+
+    On-The-Fly channel creationやSubmarine Swapにかかる手数料。
+    LSPに送金する金額に応じて手数料がかかる。
+    最低手数料は paymentFeeMin() で取得する。
+end note
+
+App -> lccontrol: feePercent()
+lccontrol -> Android: getFeePermyriad()
+Android -> Lndmobile: LcGetLcFeePermyriad()
+Lndmobile -> LspClient: GetLcFeePermyriad()
+return channelInfo.ChannelFeePermyriad
+return
+return
+return feePermyriad/100
+
+====
+
+note across: 共通: LSP手数料(最低sats)
+
+App -> lccontrol: paymentFeeMin()
+lccontrol -> lccontrol: paymentFee(0)
+note over lccontrol: 以下略
+return
+return fee
+
+====
+
+note across: 共通: LSP手数料
+
+App -> lccontrol: paymentFee(sats)
+lccontrol -> Android: paymentFee()
+Android -> Lndmobile: LcPaymentFee()
+Lndmobile -> LspClient: LcPaymentFee()
+LspClient -> LspClient: paymentFee(channelInfo, sats)
+return
+return
+return
+return
+return fee
+
+' ====
+
+' note across: 共通: チャネル情報チェック(現在未使用)
+
+' -> LspClient: CheckChannels()
+' LspClient -> LspClient: checkChannels()
+' return
+' LspClient -> LSP: CheckChannels()
+' note over LSP
+'     fakeChannels, closedChannelsを返す
+' end note
+' return result
+' return result
+
+====
+
+note across
+    共通: 可能最大額
+
+    LNチャネルの内、受金可能な最大 sats を返す。
+    チャネルを新規で作成するかどうかの判断にも使用される。
+    inbound capacity よりも少し小さい値を返すため、
+    チャネルは作成したがその後の送金で別チャネルが使われる事もある。
+end note
+
+App -> lccontrol: receiveMax()
+lccontrol -> Android: receiveMax()
+Android -> Lndmobile: LcReceiveMax()
+Lndmobile -> LspClient: ReceiveMax()
+LspClient -> LspClient: paymentReceiveMax()
+return
+LspClient -> AppLND: ListChannels
+return
+return
+return
+return
+return receiveMaxSats
+
+====
+
+note across #LightSalmon
+    On-The-Fly: チャネル作成用 invoice作成
+
+    LSPに送金する金額を指定して invoiceを作成する。
+    実際には2つの invoiceが作成される。
+      - 送金元に見せる invoice(手数料を引かない額)
+      - LSPに渡す invoice(手数料を引いた額)
+    実際にAppのoutbound capacityになるのは手数料を引いた額である。
+end note
+
+App -> lccontrol: paymentRegister(amount, memo)
+lccontrol -> Android: paymentRegister()
+Android -> Lndmobile: LcPaymentRegister()
+Lndmobile -> LspClient: PaymentRegister()
+LspClient -> LspClient: paymentRegister()
+LspClient -> AppLND: AddInvoice(amount)
+return orgInvoice
+note over LspClient: newSats = amount - lspFee
+LspClient -> LspClient: newAmount(orgInvoice, newSat)
+return invoice
+return
+LspClient -> LSP: RegisterPayment()
+note over LSP
+    On-The-Fly channel creationを行う
+    invoice の PaymentHash などを登録する。
+end note
+return OK
+return
+return
+return
+return invoice, error
+
+====
+
+note across #LightSalmon
+    On-The-Fly: 受金
+
+    LSP側のLNDに受金した後、チャネルオープン(zero-conf)と送金を行う。
+    Appについては通常のLN受金と同じである。
+end note
+
+HubLND /-- : 送金(invoice2)
+note over HubLND: intercept!
+HubLND -\ LSP ++: intercept
+note over LSP: PaymentHash比較
+note over LSP: いろいろチェック
+HubLND /-- LSP: OpenChannel(zero-conf)
+AppLND /-- HubLND: open_channel
+note over LSP: channelオープンをポーリング...
+note over LSP: open done!
+HubLND /-- LSP --: 送金再開(LSP feeを引いておく)
+&AppLND /-- HubLND: 送金(invoice1)
+AppLND --\ HubLND: 送金完了(preimage)
+&HubLND --\ LSP: 送金完了(preimage)
+App /-- AppLND: 送金完了
+
+====
+
+note across #LightSkyBlue
+    Sbumarine: 鍵情報一式の生成
+
+    Submarine Swapで使用する秘密鍵やPreimageを生成する。
+    この段階ではLSPとの通信は行わない。
+end note
+
+App -> lccontrol: submarineCreateKeys()
+lccontrol -> Android: submarineCreateKeys()
+Android -> Lndmobile: LcSubmarineCreateKeys()
+Lndmobile -> LspClient: SubmarineCreateKeys()
+note over LspClient
+    create preimage, paymentHash
+    create privKey, pubKey
+end note
+note over LspClient: pack protobuf: SubmarineCreateKeysResult
+return SubmarineCreateKeysResult
+return result
+note over Android: unpack SubmarineCreateKeysResult
+return
+return preimage, paymentHash, privKey, pubKey
+
+====
+
+note across #LightSkyBlue
+    Sbumarine: LSPへの登録
+
+    Submarine Swapで使用する情報をLSPへ登録する。
+    Swapアドレスが戻ってくるので、そのアドレスを送金元に提示する。
+end note
+
+App -> lccontrol: submarineRegister(paymentHash, pubKey)
+lccontrol -> Android: submarineRegister()
+Android -> Lndmobile: LcSubmarineRegister()
+Lndmobile -> LspClient: SubmarineRegister()
+LspClient -> LspClient: submarineRegister()
+LspClient -> LSP: RegisterSubmarine()
+note over LSP
+    SubmarineSwapを行うBTCアドレスを作成する
+end note
+return result
+LspClient -> AppLND: GetInfo()
+return info
+LspClient -> AppLND: AddWatchScript(script, blockHash, blockHeight)
+return scriptAddress
+note over LspClient: pack protobuf: SubmarineRegisterResult
+return SubmarineRegisterResult
+return result
+return
+note over Android: unpack SubmarineRegisterResult
+return
+return pubKey, script, scriptAddress, blockHeight
+
+====
+
+note across #LightSkyBlue
+    Sbumarine: Swapアドレスへの受金
+
+    BTC受金(1-conf)するとLSPとAppはそれぞれ処理を行う。
+    Appの処理が終わったらLSPに通知し、受取の準備ができたことを伝える。
+    LSPは自身でもSwapアドレスへの受金を確認できた場合にチャネルオープン(zero-conf)と送金を行う。
+
+    なお、Swapアドレスによってチャネルをオープンするのは初回の受金と判断したトランザクションだけである。
+    
+end note
+
+HubLND /-- : Swapアドレスへの受金
+note over LSP, HubLND: 省略
+
+AppLND /--: Swapアドレスへの受金
+&App /-- AppLND
+
+App -> lccontrol: submarineReceive(paymentHash, invoice)
+lccontrol -> Android: submarineReceive()
+Android -> Lndmobile: LcSubmarineReceive()
+Lndmobile -> LspClient: SubmarineReceive()
+LspClient -> LspClient: submarineReceive()
+LspClient -> LSP: ReceiveSubmarine()
+note over LSP
+    PaymentHashに関連するinvoiceを登録する。
+    関連するBTCアドレスへの着金監視は別途行う。
+end note
+return
+return
+return
+return
+return
+return error
+
+====
+
+note across #LightSkyBlue
+    Sbumarine: Swapアドレスからの返金
+
+    
+end note
+
+App -> lccontrol: submarineRepayment(privkey, script, ...)
+lccontrol -> Android: submarineRepayment()
+Android -> Lndmobile: LcSubmarineRepayment()
+Lndmobile -> LspClient: SubmarineRepayment()
+LspClient -> LspClient: submarineRepayment()
+LspClient -> AppLND: GetInfo()
+return info
+LspClient -> AppLND: PublishTransaction()
+return result
+return
+return
+return
+return
+return txHash, error
+
+@enduml

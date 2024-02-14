@@ -1,0 +1,8 @@
+<resources>
+    <string name="service_indicator_chan_desc">Indicates that service is working.</string>
+    <string name="service_indicator_safestop">アプリ終了</string>
+    <string name="service_indicator_closed">チャネルクローズ検出!</string>
+    <string name="service_indicator_closed_desc">Lightningチャネルがクローズされました。アプリを起動して確認してください。</string>
+    <string name="service_indicator_longoff">ウォレットを起動してください！</string>
+    <string name="service_indicator_longoff_desc">アプリを長期間起動していません。</string>
+</resources>
